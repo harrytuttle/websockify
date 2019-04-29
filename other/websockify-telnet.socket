@@ -1,0 +1,9 @@
+[Unit]
+Description=Proxy for telnet via websocket
+
+[Socket]
+ListenStream=23
+Accept=yes
+
+[Install]
+WantedBy=sockets.target

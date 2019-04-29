@@ -1,0 +1,18 @@
+[Unit]
+Description=telnet proxy Per-Connection Server
+Requires=websockify-telnet.socket
+
+[Service]
+Type=simple
+ExecStart=-/usr/local/bin/websockify 23 auto
+User=nobody
+NoNewPrivileges=true
+#SystemCallFilter=getrlimit
+#SystemCallFilter=@network-io,@basic-io
+#SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

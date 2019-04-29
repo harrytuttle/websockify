@@ -26,6 +26,7 @@
 #include <openssl/md5.h> /* md5 hash */
 #include <openssl/sha.h> /* sha1 hash */
 #include "websocket.h"
+#include <systemd/sd-daemon.h>
 
 /*
  * Global state
@@ -651,6 +652,7 @@ static void gen_sha1(headers_t *headers, char *target) {
     //assert(r == HYBI10_ACCEPTHDRLEN - 1);
 }
 
+extern char target_host[256];
 
 ws_ctx_t *do_handshake(int sock) {
     char handshake[4096], response[4096], sha1[29], trailer[17];
@@ -662,6 +664,7 @@ ws_ctx_t *do_handshake(int sock) {
 
     // Peek, but don't read the data
     len = recv(sock, handshake, 1024, MSG_PEEK);
+    memcpy(target_host,handshake+5,strchr(handshake+5,' ')-handshake-5);
     handshake[len] = 0;
     if (len == 0) {
         handler_msg("ignoring empty handshake\n");
@@ -805,14 +808,20 @@ void daemonize(int keepfd) {
     dup(i);                       // Redirect stderr
 }
 
-
 void start_server() {
-    int lsock, csock, pid, sopt = 1, i;
+    int lsock, n, csock, pid, sopt = 1, i;
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clilen;
     ws_ctx_t *ws_ctx;
 
-
+n = sd_listen_fds(0);
+if (n > 1) {
+        fprintf(stderr, "Too many file descriptors received.\n");
+        exit(1);
+} else if (n == 1) {
+        settings.run_once=1;
+        lsock = SD_LISTEN_FDS_START + 0;
+} else {
     /* Initialize buffers */
     lsock = socket(AF_INET, SOCK_STREAM, 0);
     if (lsock < 0) { error("ERROR creating listener socket"); }
@@ -847,6 +856,9 @@ void start_server() {
 
     printf("Waiting for connections on %s:%d\n",
             settings.listen_host, settings.listen_port);
+
+
+}
 
     while (1) {
         clilen = sizeof(cli_addr);

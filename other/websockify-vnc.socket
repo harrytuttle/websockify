@@ -1,0 +1,9 @@
+[Unit]
+Description=Proxy for vnc via websocket
+
+[Socket]
+ListenStream=5900
+Accept=yes
+
+[Install]
+WantedBy=sockets.target

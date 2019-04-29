@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
     settings.daemon       = daemon;
     settings.run_once     = run_once;
 
-    if ((argc-optind) != 2) {
+    if ((argc-optind) < 1 || (argc-optind) > 2) {
         usage("Invalid number of arguments\n");
     }
 
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
         memcpy(target_host, argv[optind], found-argv[optind]);
         target_port = strtol(found+1, NULL, 10);
     } else {
-        usage("Target argument must be host:port\n");
+        target_port = settings.listen_port;
     }
     if (target_port == 0) {
         usage("Could not parse target port\n");
